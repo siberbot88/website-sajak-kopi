@@ -16,9 +16,9 @@ export interface Product {
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = 'http://localhost:3000/api/products';
+  private apiUrl = 'https://website-sajak-kopi.onrender.com/api/products';
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
   private authHeaders(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });

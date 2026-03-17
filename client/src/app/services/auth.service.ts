@@ -12,10 +12,10 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = 'https://website-sajak-kopi.onrender.com/api/auth';
   private loggedIn = new BehaviorSubject<boolean>(this.hasToken());
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private hasToken(): boolean {
     return !!localStorage.getItem('token');
