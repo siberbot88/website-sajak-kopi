@@ -1,0 +1,198 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="dashboard">
+  <!-- Header -->
+  <header class="dash-header">
+    <div class="dash-header-inner">
+      <div class="dash-brand">
+        <i class="pi pi-th-large"></i>
+        <span>Sajak Kopi — Dashboard</span>
+      </div>
+      <div class="dash-user">
+        <span class="dash-username">{{ username }}</span>
+        <p-button label="Keluar" icon="pi pi-sign-out" [text]="true" size="small" (onClick)="logout()" />
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="dash-content">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card" (click)="filterByCategory('')" [class.active]="selectedCategory() === ''">
+        <div class="stat-icon"><i class="pi pi-list"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ products().length }}</div>
+          <div class="stat-label">Total Produk</div>
+        </div>
+      </div>
+      <div class="stat-card" (click)="filterByCategory('Minuman')" [class.active]="selectedCategory() === 'Minuman'">
+        <div class="stat-icon stat-minuman"><i class="pi pi-sun"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ getCategoryCount('Minuman') }}</div>
+          <div class="stat-label">Minuman</div>
+        </div>
+      </div>
+      <div class="stat-card" (click)="filterByCategory('Makanan')" [class.active]="selectedCategory() === 'Makanan'">
+        <div class="stat-icon stat-makanan"><i class="pi pi-bookmark"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ getCategoryCount('Makanan') }}</div>
+          <div class="stat-label">Makanan</div>
+        </div>
+      </div>
+      <div class="stat-card" (click)="filterByCategory('Cemilan')" [class.active]="selectedCategory() === 'Cemilan'">
+        <div class="stat-icon stat-cemilan"><i class="pi pi-heart"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ getCategoryCount('Cemilan') }}</div>
+          <div class="stat-label">Cemilan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Filter Label -->
+    @if (selectedCategory()) {
+      <div class="filter-label">
+        <p-tag [value]="'Menampilkan: ' + selectedCategory()" />
+        <p-button label="Reset" icon="pi pi-times" [text]="true" size="small" (onClick)="filterByCategory('')" />
+      </div>
+    }
+
+    <!-- Products Table -->
+    <div class="table-section">
+      <p-toolbar>
+        <ng-template #start>
+          <h2 class="table-title">Daftar Produk</h2>
+        </ng-template>
+        <ng-template #end>
+          <p-button label="Tambah Produk" icon="pi pi-plus" (onClick)="openAddDialog()" />
+        </ng-template>
+      </p-toolbar>
+
+      <p-table
+        #dt
+        [value]="filteredProducts()"
+        [paginator]="true"
+        [rows]="8"
+        [rowsPerPageOptions]="[5, 8, 15, 25]"
+        [loading]="loading()"
+        [globalFilterFields]="['name', 'category', 'description']"
+        [tableStyle]="{ 'min-width': '60rem' }"
+        currentPageReportTemplate="Menampilkan {first} - {last} dari {totalRecords} produk"
+        [showCurrentPageReport]="true"
+        dataKey="_id"
+        [rowHover]="true"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template #caption>
+          <div class="table-caption">
+            <p-iconfield>
+              <p-inputicon styleClass="pi pi-search" />
+              <input pInputText type="text" placeholder="Cari produk..." (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+            </p-iconfield>
+          </div>
+        </ng-template>
+
+        <ng-template #header>
+          <tr>
+            <th pSortableColumn="name" style="width: 35%">Produk <p-sortIcon field="name" /></th>
+            <th pSortableColumn="category" style="width: 12%">Kategori <p-sortIcon field="category" /></th>
+            <th pSortableColumn="price" style="width: 12%">Harga <p-sortIcon field="price" /></th>
+            <th style="width: 30%">Deskripsi</th>
+            <th style="width: 11%">Aksi</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-product>
+          <tr>
+            <td>
+              <div class="product-cell">
+                <img [src]="product.imageUrl" [alt]="product.name" class="product-thumb" loading="lazy">
+                <span class="product-name">{{ product.name }}</span>
+              </div>
+            </td>
+            <td>
+              <p-tag [value]="product.category" [severity]="getCategorySeverity(product.category)" />
+            </td>
+            <td class="td-price">{{ formatPrice(product.price) }}</td>
+            <td class="td-desc">{{ product.description | slice:0:80 }}...</td>
+            <td>
+              <div class="action-btns">
+                <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="openEditDialog(product)" />
+                <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small" (onClick)="confirmDelete(product)" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="5" class="empty-msg">
+              <i class="pi pi-inbox" style="font-size: 2rem; color: var(--color-accent-light);"></i>
+              <p>Belum ada produk dalam kategori ini.</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Dialog -->
+<p-dialog
+  [header]="editMode() ? 'Edit Produk' : 'Tambah Produk Baru'"
+  [(visible)]="showDialog"
+  [modal]="true"
+  [style]="{ width: '520px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <ng-template #content>
+    <div class="dialog-form">
+      <div class="form-group">
+        <label for="name">Nama Produk</label>
+        <input pInputText id="name" [(ngModel)]="form.name" placeholder="Contoh: Kopi Susu Kayu Manis" class="w-full" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="category">Kategori</label>
+          <p-select id="category" [(ngModel)]="form.category" [options]="categoryOptions" optionLabel="label" optionValue="value" placeholder="Pilih kategori" class="w-full" />
+        </div>
+        <div class="form-group">
+          <label for="price">Harga (Rp)</label>
+          <p-inputnumber id="price" [(ngModel)]="form.price" placeholder="20000" mode="decimal" [useGrouping]="false" class="w-full" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Deskripsi</label>
+        <textarea pTextarea id="description" [(ngModel)]="form.description" rows="3" placeholder="Deskripsi puitis tentang produk..." class="w-full"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="imageUpload">Upload Gambar Produk (opsional)</label>
+        <div class="file-upload-container">
+          <input type="file" id="imageUpload" (change)="onFileSelected($event)" accept="image/*" class="w-full file-input" />
+          @if (selectedFile) {
+            <small class="file-name text-accent">File terpilih: {{ selectedFile.name }}</small>
+          } @else if (editMode() && form.imageUrl) {
+            <div class="current-image-preview">
+              <img [src]="form.imageUrl" alt="Current Image" style="height: 50px; border-radius: 4px; object-fit: cover; margin-top: 0.5rem;" />
+              <small class="text-light">Gambar saat ini</small>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="imageUrl">Atau gunakan URL Gambar</label>
+        <input pInputText id="imageUrl" [(ngModel)]="form.imageUrl" placeholder="Atau paste link URL di sini..." class="w-full" />
+      </div>
+    </div>
+  </ng-template>
+  <ng-template #footer>
+    <p-button label="Batal" [text]="true" (onClick)="hideDialog()" />
+    <p-button [label]="saving() ? 'Menyimpan...' : (editMode() ? 'Simpan Perubahan' : 'Tambah Produk')" icon="pi pi-check" (onClick)="saveProduct()" [disabled]="saving()" />
+  </ng-template>
+</p-dialog>

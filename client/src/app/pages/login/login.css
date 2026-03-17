@@ -1,0 +1,123 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg, #F5F0E8);
+  padding: 1.5rem;
+}
+
+.login-card {
+  background: var(--color-white, #FFFDF8);
+  border-radius: 12px;
+  border: 1px solid var(--color-border, #E0D5C5);
+  box-shadow: 0 4px 24px var(--color-shadow, rgba(74, 59, 44, 0.08));
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-icon {
+  color: var(--color-accent, #8B5A2B);
+  margin-bottom: 0.75rem;
+}
+
+.login-header h1 {
+  font-family: 'Ovo', serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  color: var(--color-accent-dark, #4A3B2C);
+  margin-bottom: 0.25rem;
+}
+
+.login-header p {
+  font-size: 0.78rem;
+  color: var(--color-text-light, #6B6055);
+  margin: 0;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-group label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-light, #6B6055);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-group input {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border, #E0D5C5);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--color-text, #2C2C2C);
+  background: var(--color-bg, #F5F0E8);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: var(--color-accent, #8B5A2B);
+  background: var(--color-white, #FFFDF8);
+  box-shadow: 0 0 0 3px rgba(139, 90, 43, 0.1);
+}
+
+.form-group input::placeholder {
+  color: var(--color-accent-light, #D9C5B3);
+}
+
+.btn-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--color-accent-dark, #4A3B2C);
+  color: var(--color-white, #FFFDF8);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-top: 0.25rem;
+}
+
+.btn-login:hover:not(:disabled) {
+  background: var(--color-accent, #8B5A2B);
+}
+
+.btn-login:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.8rem;
+}

@@ -1,0 +1,66 @@
+<section class="section perpustakaan-page">
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <p class="section-label">Sudut Perpustakaan</p>
+      <h1>Tempat Kata-Kata Beristirahat</h1>
+      <p class="page-desc">
+        Di Sajak Kopi, rak-rak buku bukan sekadar dekorasi.
+        Mereka adalah jendela ke dunia lain — silakan pinjam, baca, dan kembalikan dengan sebuah catatan kecil di halaman terakhir.
+      </p>
+    </div>
+
+    <!-- Intro -->
+    <div class="perpus-intro">
+      <div class="perpus-intro-image">
+        <img src="/assets/images/rak_buku.jpg" alt="Rak buku Sajak Kopi" loading="lazy">
+      </div>
+      <div class="perpus-intro-content">
+        <h2>Perpustakaan Mini Kami</h2>
+        <p>
+          Koleksi kami berkembang bersama pelanggan. Banyak dari buku-buku ini ditinggalkan oleh mereka yang pernah duduk
+          di sudut kedai kami — disertai catatan tangan, lipatan halaman, dan kadang-kadang noda kopi di pinggiran.
+        </p>
+        <p>
+          Kami percaya setiap buku punya cerita di balik ceritanya. Siapa yang terakhir membacanya?
+          Apa yang mereka rasakan? Tanda tanya itulah yang membuat perpustakaan kecil kami hidup.
+        </p>
+      </div>
+    </div>
+
+    <!-- Book Grid -->
+    <div class="books-section">
+      <h2 class="text-center">Koleksi Pilihan</h2>
+      <div class="books-grid">
+        @for (book of books; track book.title) {
+          <div class="book-card">
+            <div class="book-cover">
+              <img [src]="book.cover" [alt]="book.title" loading="lazy">
+            </div>
+            <div class="book-info">
+              <h3>{{ book.title }}</h3>
+              <p class="book-author">{{ book.author }}</p>
+              <p class="book-quote">"{{ book.quote }}"</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Quotes Section -->
+    <div class="quotes-section">
+      <h2 class="text-center">Kutipan dari Rak Kami</h2>
+      <div class="quotes-grid">
+        @for (quote of quotes; track quote.text) {
+          <blockquote class="quote-card">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="24" height="24" class="quote-icon">
+              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+            </svg>
+            <p>{{ quote.text }}</p>
+            <cite>— {{ quote.source }}</cite>
+          </blockquote>
+        }
+      </div>
+    </div>
+  </div>
+</section>

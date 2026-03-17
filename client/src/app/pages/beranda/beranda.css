@@ -1,0 +1,244 @@
+/* --- Hero --- */
+.hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  background-image: url('../../../assets/images/hero-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(74, 59, 44, 0.88) 0%,
+    rgba(139, 90, 43, 0.72) 100%
+  );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  animation: fadeInUp 0.8s ease;
+}
+
+.hero-label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-accent-light);
+  margin-bottom: var(--spacing-md);
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--color-white);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: var(--fs-base);
+  color: rgba(245, 240, 232, 0.8);
+  line-height: 1.8;
+  margin-bottom: var(--spacing-xl);
+  max-width: 500px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* --- Buttons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.6rem;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all var(--transition);
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  color: var(--color-white);
+  border-color: var(--color-accent);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-dark);
+  border-color: var(--color-accent-dark);
+  color: var(--color-white);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-white);
+  border-color: rgba(245, 240, 232, 0.4);
+}
+
+.btn-outline:hover {
+  background-color: rgba(245, 240, 232, 0.1);
+  border-color: rgba(245, 240, 232, 0.7);
+  color: var(--color-white);
+}
+
+/* --- Section --- */
+.section-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.section-label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-accent);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* --- Filosofi --- */
+.filosofi {
+  background-color: var(--color-white);
+}
+
+.filosofi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-xl);
+}
+
+.filosofi-card {
+  padding: var(--spacing-xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition);
+}
+
+.filosofi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px var(--color-shadow);
+  border-color: var(--color-accent-light);
+}
+
+.filosofi-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  color: var(--color-accent);
+  margin-bottom: var(--spacing-md);
+}
+
+.filosofi-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.filosofi-card h3 {
+  font-size: var(--fs-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.filosofi-card p {
+  font-size: var(--fs-sm);
+  color: var(--color-text-light);
+  line-height: 1.7;
+}
+
+/* --- Quote --- */
+.quote-section {
+  background-color: var(--color-bg-alt);
+}
+
+.main-quote {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+
+.quote-mark {
+  color: var(--color-accent-light);
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+.main-quote p {
+  font-family: var(--font-heading);
+  font-size: var(--fs-lg);
+  color: var(--color-accent-dark);
+  line-height: 1.8;
+  font-style: italic;
+}
+
+.main-quote cite {
+  display: block;
+  margin-top: var(--spacing-lg);
+  font-size: var(--fs-sm);
+  color: var(--color-text-light);
+  font-style: normal;
+}
+
+/* --- CTA --- */
+.cta-section {
+  background-color: var(--color-white);
+}
+
+.cta-section h2 {
+  margin-bottom: var(--spacing-md);
+}
+
+.cta-text {
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-xl);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.cta-section .btn-outline {
+  color: var(--color-accent-dark);
+  border-color: var(--color-accent-light);
+}
+
+.cta-section .btn-outline:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .hero {
+    min-height: 70vh;
+    background-attachment: scroll;
+  }
+
+  .filosofi-grid {
+    grid-template-columns: 1fr;
+  }
+}
