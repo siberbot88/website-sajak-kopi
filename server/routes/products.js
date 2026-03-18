@@ -5,21 +5,23 @@ const authMiddleware = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Configure Multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../public/uploads');
-    // Ensure dir exists
-    if (!fs.existsSync(uploadDir)){
-        fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
+// Configuration Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Configure Multer storage to use Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'sajakkopi',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
-  }
 });
 
 const upload = multer({ 
@@ -67,8 +69,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     const productData = { ...req.body };
     // If request contains a file, construct the imageUrl
     if (req.file) {
-      const baseUrl = req.protocol + '://' + req.get('host');
-      productData.imageUrl = baseUrl + '/uploads/' + req.file.filename;
+      productData.imageUrl = req.file.path; // Cloudinary URL
     }
     
     // Convert price string to number if needed (from form-data)
@@ -89,8 +90,7 @@ router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
     
     // If request contains a new file, update imageUrl and delete old
     if (req.file) {
-      const baseUrl = req.protocol + '://' + req.get('host');
-      productData.imageUrl = baseUrl + '/uploads/' + req.file.filename;
+      productData.imageUrl = req.file.path; // Cloudinary URL
 
       // Optional: Delete old image file if it's a local upload
       const oldProduct = await Product.findById(req.params.id);
@@ -98,6 +98,9 @@ router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
         const oldFileName = oldProduct.imageUrl.split('/').pop();
         const oldPath = path.join(__dirname, '../public/uploads', oldFileName);
         if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      } else if (oldProduct && oldProduct.imageUrl && oldProduct.imageUrl.includes('cloudinary')) {
+        const publicId = oldProduct.imageUrl.split('/').pop().split('.')[0];
+        try { await cloudinary.uploader.destroy(`sajakkopi/${publicId}`); } catch(e) {}
       }
     }
 
@@ -127,6 +130,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       const fileName = product.imageUrl.split('/').pop();
       const filePath = path.join(__dirname, '../public/uploads', fileName);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    } else if (product.imageUrl && product.imageUrl.includes('cloudinary')) {
+      const publicId = product.imageUrl.split('/').pop().split('.')[0];
+      try { await cloudinary.uploader.destroy(`sajakkopi/${publicId}`); } catch(e) {}
     }
 
     res.json({ message: 'Produk berhasil dihapus.' });
