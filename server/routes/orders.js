@@ -6,8 +6,8 @@ const midtransClient = require('midtrans-client');
 
 // Konfigurasi Midtrans Snap
 const serverKey = process.env.MIDTRANS_SERVER_KEY || '';
-// Deteksi otomatis jika menggunakan key Production (tidak berkarakter 'SB-')
-const isProduction = serverKey !== '' && !serverKey.startsWith('SB-');
+// Memaksa mode Sandbox (isProduction = false) karena Kunci Sandbox Anda tidak menggunakan 'SB-'
+const isProduction = false;
 
 const snap = new midtransClient.Snap({
   isProduction: isProduction,
