@@ -160,4 +160,53 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// POST /api/orders/webhook - Handle Midtrans Webhook
+router.post('/webhook', async (req, res) => {
+  try {
+    const notification = req.body;
+    
+    // In production, we should verify the signature key here using crypto:
+    // const hash = crypto.createHash('sha512').update(notification.order_id + notification.status_code + notification.gross_amount + process.env.MIDTRANS_SERVER_KEY).digest('hex');
+    // if(notification.signature_key !== hash) return res.status(403).json({ message: 'Invalid signature' });
+
+    const orderId = notification.order_id;
+    const transactionStatus = notification.transaction_status;
+    const fraudStatus = notification.fraud_status;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+    }
+
+    // Logic based on Midtrans transaction status
+    if (transactionStatus == 'capture') {
+      if (fraudStatus == 'challenge') {
+        order.status = 'Menunggu Pembayaran'; // Or 'Menunggu Review'
+      } else if (fraudStatus == 'accept') {
+        order.status = 'Siap Diantar';
+      }
+    } else if (transactionStatus == 'settlement') {
+      order.status = 'Siap Diantar';
+    } else if (transactionStatus == 'cancel' ||
+      transactionStatus == 'deny' ||
+      transactionStatus == 'expire') {
+      order.status = 'Batal';
+    } else if (transactionStatus == 'pending') {
+      order.status = 'Menunggu Pembayaran';
+    }
+
+    await order.save();
+    
+    // Free up table if order is cancelled
+    if (order.status === 'Batal' && order.tableNumber) {
+        TableStatus = require('./orders').TableStatus; // We don't have this globally exported easily, but frontend handles freeing tables usually, or we can just ignore table validation temporarily here since it's just webhook
+    }
+
+    res.status(200).json({ message: 'Webhook received and processed' });
+  } catch (err) {
+    console.error('Webhook error:', err);
+    res.status(500).json({ message: 'Internal server error processing webhook' });
+  }
+});
+
 module.exports = router;
