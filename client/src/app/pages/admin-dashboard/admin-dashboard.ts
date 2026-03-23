@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ProductService, Product } from '../../services/product.service';
+import { OrderService, Order } from '../../services/order.service';
 
 // PrimeNG
 import { TableModule } from 'primeng/table';
@@ -35,7 +36,21 @@ import { MessageService, ConfirmationService } from 'primeng/api';
   styleUrl: './admin-dashboard.css'
 })
 export class AdminDashboard implements OnInit {
+  // Tabs: 'produk' | 'pesanan'
+  activeTab = signal<'produk' | 'pesanan'>('produk');
+
+  // Products State
   products = signal<Product[]>([]);
+  
+  // Orders State
+  orders = signal<Order[]>([]);
+  activePaymentTab = signal<'Kasir' | 'QRIS'>('Kasir');
+
+  filteredOrders = computed(() => {
+    const method = this.activePaymentTab();
+    return this.orders().filter(o => o.paymentMethod === method);
+  });
+
   loading = signal(true);
   showDialog = signal(false);
   editMode = signal(false);
@@ -68,6 +83,7 @@ export class AdminDashboard implements OnInit {
   constructor(
     private authService: AuthService,
     private productService: ProductService,
+    private orderService: OrderService,
     private router: Router,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
@@ -79,7 +95,181 @@ export class AdminDashboard implements OnInit {
       return;
     }
     this.loadProducts();
+    this.loadOrders();
   }
+
+  // ==== Orders Methods ====
+  loadOrders() {
+    this.orderService.getOrders().subscribe({
+      next: (data) => this.orders.set(data),
+      error: () => this.messageService.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal memuat pesanan' })
+    });
+  }
+
+  updateOrderStatus(order: Order, newStatus: string) {
+    this.orderService.updateOrderStatus(order._id, newStatus).subscribe({
+      next: () => {
+        this.loadOrders();
+        this.messageService.add({ severity: 'success', summary: 'Berhasil', detail: 'Status pesanan diperbarui.' });
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengubah status.' })
+    });
+  }
+
+  deleteOrder(order: Order) {
+    this.confirmationService.confirm({
+      message: `Yakin ingin menghapus pesanan <b>#${order.queueNumber}</b> dari <b>${order.buyerName}</b>? Data pesanan akan dihapus permanen dari database.`,
+      header: 'Konfirmasi Hapus Pesanan',
+      icon: 'pi pi-trash',
+      acceptLabel: 'Ya, Hapus',
+      rejectLabel: 'Batal',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
+      accept: () => {
+        this.orderService.deleteOrder(order._id).subscribe({
+          next: () => {
+            this.loadOrders();
+            this.messageService.add({ severity: 'success', summary: 'Berhasil', detail: `Pesanan #${order.queueNumber} berhasil dihapus.` });
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal menghapus pesanan.' })
+        });
+      }
+    });
+  }
+
+  getOrderSeverity(status: string) {
+    switch (status) {
+      case 'Selesai': return 'success';
+      case 'Siap Diantar': return 'info';
+      case 'Diproses': return 'warn';
+      case 'Batal': return 'danger';
+      default: return 'secondary';
+    }
+  }
+
+  async printReceipt(order: Order) {
+    const itemsHtml = order.items.map(item =>
+      `<tr>
+        <td style="text-align:left">${item.name}</td>
+        <td style="text-align:center">${item.quantity}</td>
+        <td style="text-align:right">${this.formatPrice(item.price * item.quantity)}</td>
+      </tr>`
+    ).join('');
+
+    // Fetch logo and convert to base64 so it works in about:blank popup
+    let logoBase64 = '';
+    try {
+      const resp = await fetch('/assets/images/logo-sajak-kopi.png');
+      const blob = await resp.blob();
+      logoBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch { /* logo optional */ }
+
+    const receiptHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Struk - #${order.queueNumber}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Ovo&display=swap');
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Inter', sans-serif;
+            width: 300px;
+            margin: 0 auto;
+            padding: 20px 15px;
+            color: #333;
+            position: relative;
+          }
+          .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.08;
+            width: 240px;
+            height: 240px;
+            pointer-events: none;
+            z-index: 0;
+          }
+          .content { position: relative; z-index: 1; }
+          .header { text-align: center; margin-bottom: 16px; }
+          .header h2 { font-family: 'Ovo', serif; font-size: 18px; color: #4A3B2C; }
+          .header p { font-size: 11px; color: #6B6055; }
+          .divider { border: none; border-top: 1px dashed #ccc; margin: 12px 0; }
+          .queue { text-align: center; margin: 12px 0; }
+          .queue span { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #6B6055; }
+          .queue strong { display: block; font-size: 36px; font-family: 'Ovo', serif; color: #8B5A2B; }
+          .info { font-size: 12px; }
+          .info p { display: flex; justify-content: space-between; margin: 4px 0; }
+          .info p strong { color: #6B6055; font-weight: 400; }
+          table { width: 100%; font-size: 11px; margin: 8px 0; border-collapse: collapse; }
+          table th { text-align: left; border-bottom: 1px solid #ddd; padding: 4px 0; font-weight: 600; }
+          table td { padding: 3px 0; }
+          .total { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; margin-top: 8px; }
+          .footer { text-align: center; margin-top: 20px; font-size: 10px; color: #999; }
+          @media print { body { width: 100%; } .watermark { position: fixed; } }
+        </style>
+      </head>
+      <body>
+        ${logoBase64 ? `<img src="${logoBase64}" class="watermark" alt="">` : ''}
+        <div class="content">
+          <div class="header">
+            <h2>Sajak Kopi</h2>
+            <p>Struk Pesanan</p>
+          </div>
+          <hr class="divider">
+          <div class="queue">
+            <span>Nomor Antrean</span>
+            <strong>${order.queueNumber}</strong>
+          </div>
+          <hr class="divider">
+          <div class="info">
+            <p><strong>Nama:</strong> <span>${order.buyerName}</span></p>
+            <p><strong>Meja:</strong> <span>${order.tableNumber}</span></p>
+            <p><strong>Bayar:</strong> <span>${order.paymentMethod}</span></p>
+            <p><strong>Status:</strong> <span>${order.status}</span></p>
+            <p><strong>Waktu:</strong> <span>${new Date(order.createdAt).toLocaleString('id-ID')}</span></p>
+          </div>
+          <hr class="divider">
+          <table>
+            <thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Harga</th></tr></thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+          <hr class="divider">
+          <div class="subtotal-line" style="display:flex;justify-content:space-between;font-size:12px;margin:4px 0;color:#6B6055;">
+            <span>Subtotal</span>
+            <span>${this.formatPrice(Math.round(order.totalAmount / 1.11))}</span>
+          </div>
+          <div class="tax-line" style="display:flex;justify-content:space-between;font-size:12px;margin:4px 0;color:#6B6055;padding-bottom:8px;border-bottom:1px dashed #ccc;">
+            <span>Tax (11%)</span>
+            <span>${this.formatPrice(order.totalAmount - Math.round(order.totalAmount / 1.11))}</span>
+          </div>
+          <div class="total" style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-top:8px;">
+            <span>Total</span>
+            <span>${this.formatPrice(order.totalAmount)}</span>
+          </div>
+          <div class="footer">
+            <p>Terima kasih telah memesan di Sajak Kopi</p>
+            <p>Setiap Sajian, Sebuah Cerita</p>
+          </div>
+        </div>
+        <script>window.onload = function() { window.print(); }<\/script>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=350,height=600');
+    if (printWindow) {
+      printWindow.document.write(receiptHtml);
+      printWindow.document.close();
+    }
+  }
+
+  // ==== Products Methods ====
 
   get username(): string {
     return this.authService.username || 'Admin';

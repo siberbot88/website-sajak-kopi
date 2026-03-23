@@ -16,9 +16,11 @@ app.use('/uploads', express.static('public/uploads'));
 // Routes
 const productRoutes = require('./routes/products');
 const authRoutes = require('./routes/auth');
+const orderRoutes = require('./routes/orders');
 
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Root
 app.get('/', (req, res) => {

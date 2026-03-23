@@ -8,11 +8,13 @@ interface LoginResponse {
   username: string;
 }
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://website-sajak-kopi.onrender.com/api/auth';
+  private apiUrl = `${environment.apiUrl}/api/auth`;
   private loggedIn = new BehaviorSubject<boolean>(this.hasToken());
 
   constructor(private http: HttpClient) { }

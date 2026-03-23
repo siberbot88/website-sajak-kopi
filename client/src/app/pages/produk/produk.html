@@ -7,6 +7,21 @@
       <p class="page-desc">Kami tidak sekadar menyajikan makanan dan minuman. Kami menyajikan pengalaman — yang diracik dari bahan pilihan dan cerita-cerita kecil.</p>
     </div>
 
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </svg>
+      <input type="text" placeholder="Cari menu favorit kamu..." [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)">
+      @if (searchQuery()) {
+        <button class="clear-search" (click)="onSearch('')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      }
+    </div>
+
     <!-- Category Tabs -->
     <div class="category-tabs">
       @for (cat of categories; track cat) {
@@ -51,7 +66,7 @@
     @if (!loading()) {
       <div class="products-grid">
         @for (product of paginatedProducts; track product._id) {
-          <article class="product-card">
+          <article class="product-card" (click)="openModal(product)">
             <div class="product-image">
               <img [src]="product.imageUrl" [alt]="product.name" loading="lazy">
               <span class="product-badge">{{ product.category }}</span>
@@ -59,9 +74,17 @@
             <div class="product-body">
               <h3>{{ product.name }}</h3>
               <p class="product-desc">{{ product.description }}</p>
-              @if (product.price) {
-                <p class="product-price">{{ formatPrice(product.price) }}</p>
-              }
+              
+              <div class="product-footer">
+                @if (product.price) {
+                  <p class="product-price">{{ formatPrice(product.price) }}</p>
+                }
+                <button class="btn-icon" (click)="$event.stopPropagation(); cartService.addToCart(product, 1)">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </article>
         }
@@ -94,9 +117,47 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="40" height="40">
             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
-          <p>Belum ada produk dalam kategori ini.</p>
+          @if (searchQuery()) {
+            <p>Tidak ditemukan produk untuk "{{ searchQuery() }}".</p>
+          } @else {
+            <p>Belum ada produk dalam kategori ini.</p>
+          }
         </div>
       }
     }
   </div>
 </section>
+
+<!-- Product Detail Modal -->
+@if (selectedProduct()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeModal()">✕</button>
+      
+      <div class="modal-layout">
+        <div class="modal-image">
+          <img [src]="selectedProduct()?.imageUrl" [alt]="selectedProduct()?.name">
+        </div>
+        <div class="modal-details">
+          <span class="modal-badge">{{ selectedProduct()?.category }}</span>
+          <h2>{{ selectedProduct()?.name }}</h2>
+          <p class="modal-price">{{ formatPrice(selectedProduct()?.price || 0) }}</p>
+          
+          <p class="modal-desc">{{ selectedProduct()?.description }}</p>
+          
+          <div class="modal-actions">
+            <div class="qty-controls">
+              <button (click)="decrementQty()" [disabled]="modalQuantity() <= 1">-</button>
+              <span>{{ modalQuantity() }}</span>
+              <button (click)="incrementQty()">+</button>
+            </div>
+            
+            <button class="btn-primary" (click)="addToCart()">
+              Masukkan Keranjang
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

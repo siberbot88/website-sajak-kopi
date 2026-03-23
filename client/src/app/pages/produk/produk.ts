@@ -1,17 +1,26 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ProductService, Product } from '../../services/product.service';
+import { CartService } from '../../services/cart.service';
 
 @Component({
   selector: 'app-produk',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './produk.html',
   styleUrl: './produk.css'
 })
 export class Produk implements OnInit {
+  cartService = inject(CartService);
+
   products = signal<Product[]>([]);
   activeCategory = signal<string>('Semua');
+  searchQuery = signal<string>('');
   loading = signal<boolean>(true);
+  
+  // Modal State
+  selectedProduct = signal<Product | null>(null);
+  modalQuantity = signal(1);
   currentPage = signal(1);
   itemsPerPage = 9;
   categories = ['Semua', 'Minuman', 'Makanan', 'Cemilan'];
@@ -21,6 +30,33 @@ export class Produk implements OnInit {
   ngOnInit() {
     this.loadProducts();
   }
+
+  // ==== Modal Handlers ====
+  openModal(product: Product) {
+    this.selectedProduct.set(product);
+    this.modalQuantity.set(1);
+  }
+
+  closeModal() {
+    this.selectedProduct.set(null);
+  }
+
+  incrementQty() {
+    this.modalQuantity.update(q => q + 1);
+  }
+
+  decrementQty() {
+    this.modalQuantity.update(q => (q > 1 ? q - 1 : 1));
+  }
+
+  addToCart() {
+    const product = this.selectedProduct();
+    if (product) {
+      this.cartService.addToCart(product, this.modalQuantity());
+      this.closeModal();
+    }
+  }
+  // ========================
 
   loadProducts() {
     this.loading.set(true);
@@ -40,10 +76,26 @@ export class Produk implements OnInit {
     this.currentPage.set(1);
   }
 
+  onSearch(query: string) {
+    this.searchQuery.set(query);
+    this.currentPage.set(1);
+  }
+
   get filteredProducts(): Product[] {
     const cat = this.activeCategory();
-    if (cat === 'Semua') return this.products();
-    return this.products().filter(p => p.category === cat);
+    const query = this.searchQuery().toLowerCase().trim();
+    let results = this.products();
+
+    if (cat !== 'Semua') {
+      results = results.filter(p => p.category === cat);
+    }
+    if (query) {
+      results = results.filter(p =>
+        p.name.toLowerCase().includes(query) ||
+        p.description?.toLowerCase().includes(query)
+      );
+    }
+    return results;
   }
 
   get paginatedProducts(): Product[] {

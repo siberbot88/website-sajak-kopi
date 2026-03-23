@@ -18,7 +18,15 @@
 
   <!-- Content -->
   <main class="dash-content">
-    <!-- Stats -->
+    
+    <!-- Tab Controls -->
+    <div class="dash-tabs">
+      <button class="dash-tab" [class.active]="activeTab() === 'produk'" (click)="activeTab.set('produk')">Manajemen Produk</button>
+      <button class="dash-tab" [class.active]="activeTab() === 'pesanan'" (click)="activeTab.set('pesanan')">Pesanan Masuk</button>
+    </div>
+
+    @if (activeTab() === 'produk') {
+      <!-- Stats -->
     <div class="stats-grid">
       <div class="stat-card" (click)="filterByCategory('')" [class.active]="selectedCategory() === ''">
         <div class="stat-icon"><i class="pi pi-list"></i></div>
@@ -135,6 +143,102 @@
         </ng-template>
       </p-table>
     </div>
+    }
+
+    @if (activeTab() === 'pesanan') {
+      <div class="table-section">
+        <p-toolbar>
+          <ng-template #start>
+            <div class="sub-tabs">
+              <button class="sub-tab-btn" [class.active]="activePaymentTab() === 'Kasir'" (click)="activePaymentTab.set('Kasir')"><i class="pi pi-wallet"></i> Tunai (Kasir)</button>
+              <button class="sub-tab-btn" [class.active]="activePaymentTab() === 'QRIS'" (click)="activePaymentTab.set('QRIS')"><i class="pi pi-qrcode"></i> QRIS (Online)</button>
+            </div>
+          </ng-template>
+          <ng-template #end>
+            <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadOrders()" [text]="true" />
+          </ng-template>
+        </p-toolbar>
+
+        <p-table
+          #dtOrders
+          [value]="filteredOrders()"
+          [loading]="loading()"
+          styleClass="p-datatable-sm"
+          [paginator]="true"
+          [rows]="10"
+          responsiveLayout="scroll"
+          [globalFilterFields]="['queueNumber', 'buyerName', 'tableNumber', 'status']"
+        >
+          <ng-template #caption>
+            <div class="table-caption">
+              <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" placeholder="Cari pesanan..." (input)="dtOrders.filterGlobal($any($event.target).value, 'contains')" />
+              </p-iconfield>
+            </div>
+          </ng-template>
+          <ng-template #header>
+            <tr>
+              <th>Waktu</th>
+              <th>Antrean</th>
+              <th>Meja</th>
+              <th>Pemesan</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-order>
+            <tr>
+              <td>{{ order.createdAt | date:'shortTime' }}</td>
+              <td><strong>#{{ order.queueNumber }}</strong></td>
+              <td><p-tag [value]="order.tableNumber.toString()" severity="contrast" /></td>
+              <td>{{ order.buyerName }}</td>
+              <td>
+                <ul class="order-items-list">
+                  @for (item of order.items; track item.productId) {
+                    <li>{{ item.quantity }}x {{ item.name }}</li>
+                  }
+                </ul>
+              </td>
+              <td>{{ formatPrice(order.totalAmount) }}</td>
+              <td>
+                <p-tag [value]="order.status" [severity]="getOrderSeverity(order.status)" />
+              </td>
+              <td>
+                <div class="action-btns">
+                  @if (order.status === 'Menunggu Pembayaran') {
+                    @if (order.paymentMethod === 'Kasir') {
+                      <p-button label="Terima (Lunas)" size="small" icon="pi pi-check" severity="success" [text]="true" (onClick)="updateOrderStatus(order, 'Diproses')" />
+                    }
+                    <p-button label="Batal" size="small" icon="pi pi-times" severity="danger" [text]="true" (onClick)="updateOrderStatus(order, 'Batal')" />
+                  }
+                  @if (order.status === 'Diproses') {
+                    <p-button label="Siap Antar" size="small" icon="pi pi-bell" severity="info" [text]="true" (onClick)="updateOrderStatus(order, 'Siap Diantar')" />
+                  }
+                  @if (order.status === 'Siap Diantar') {
+                    <p-button label="Selesai" size="small" icon="pi pi-check-circle" severity="success" [text]="true" (onClick)="updateOrderStatus(order, 'Selesai')" />
+                  }
+                  <p-button label="Cetak Struk" size="small" icon="pi pi-print" severity="secondary" [text]="true" (onClick)="printReceipt(order)" />
+                  @if (order.status === 'Selesai' || order.status === 'Batal') {
+                    <p-button label="Hapus" size="small" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteOrder(order)" />
+                  }
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="8" class="empty-msg">
+                <i class="pi pi-inbox" style="font-size: 2rem; color: var(--color-accent-light);"></i>
+                <p>Belum ada pesanan masuk.</p>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
   </main>
 </div>
 

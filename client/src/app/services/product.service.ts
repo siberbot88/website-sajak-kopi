@@ -12,11 +12,13 @@ export interface Product {
   imageUrl: string;
 }
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = 'https://website-sajak-kopi.onrender.com/api/products';
+  private apiUrl = `${environment.apiUrl}/api/products`;
 
   constructor(private http: HttpClient, private auth: AuthService) { }
 

@@ -3,3 +3,6 @@
   <router-outlet></router-outlet>
 </main>
 <app-footer></app-footer>
+@if (!isAdminRoute()) {
+  <app-cart-sidebar></app-cart-sidebar>
+}
