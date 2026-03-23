@@ -5,9 +5,13 @@ const authMiddleware = require('../middleware/auth');
 const midtransClient = require('midtrans-client');
 
 // Konfigurasi Midtrans Snap
+const serverKey = process.env.MIDTRANS_SERVER_KEY || '';
+// Deteksi otomatis jika menggunakan key Production (tidak berkarakter 'SB-')
+const isProduction = serverKey !== '' && !serverKey.startsWith('SB-');
+
 const snap = new midtransClient.Snap({
-  isProduction: false,
-  serverKey: process.env.MIDTRANS_SERVER_KEY,
+  isProduction: isProduction,
+  serverKey: serverKey,
   clientKey: process.env.MIDTRANS_CLIENT_KEY
 });
 
