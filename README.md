@@ -2,7 +2,9 @@
 
 > *"Menyeduh Kata dalam Secangkir Rasa"*
 
-Website katalog informatif untuk kedai kopi **Sajak Kopi**, dibangun dengan **MEAN Stack** (MongoDB, Express, Angular, Node.js). Tidak ada fitur transaksi — hanya cerita, menu, dan kehangatan.
+Website e-commerce dan profil informatif untuk kedai kopi **Sajak Kopi**, dibangun dengan **MEAN Stack** (MongoDB, Express, Angular, Node.js) dan terintegrasi dengan Payment Gateway Midtrans.
+
+🌍 **Live Preview:** [https://sajakopi.netlify.app/](https://sajakopi.netlify.app/)
 
 ---
 
